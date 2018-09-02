@@ -1,0 +1,8 @@
+*.exe
+config/
+tmp/
+amWebhook
+getToken
+rakefile
+*bat
+*rb

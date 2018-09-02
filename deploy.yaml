@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: am-webhook
+  namespace: ycap
+  labels:
+    app: am-webhook
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: am-webhook
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: am-webhook
+    spec:
+      terminationGracePeriodSeconds: 30
+      # imagePullSecrets:
+      # - name: admin.regkey
+      containers:
+      - name: am-webhook
+        image: zhiminwen/am-webhook:1.0.0@sha256:b04b263555bda4efd650993891d1bfe02548e6d5ddb492c2da127e755d188d3b
+        imagePullPolicy: IfNotPresent
+        
+        env:
+          - name: PORT
+            value: "80"
+          - name: TWILIO_ACCOUNT
+            value: YOUR_ACCOUNT
+          - name: TWILIO_TOKEN
+            value: YOUR_ACCOUNT
+          - name: TWILIO_FROM
+            value: "YouNumber"
+          - name: GMAIL_FROM
+            value: "YourEmailID@gmail.com"
+
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+  
+        resources:
+          limits:
+            cpu: 10m
+            memory: 30Mi
+          requests:
+            cpu: 10m
+            memory: 30Mi
+
+        volumeMounts:
+          - name: config-volume
+            mountPath: /amhook/config
+      
+      volumes:
+        - name: config-volume
+          configMap:
+            name: am-webhook-config
